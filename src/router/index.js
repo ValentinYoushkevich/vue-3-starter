@@ -29,6 +29,11 @@ export const routes = [
     component: () => import('@/pages/AuthPage.vue')
   },
   {
+    path: '/change-password',
+    name: ROUTE_NAMES.CHANGE_PASSWORD,
+    component: () => import('@/pages/ChangePasswordPage.vue')
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: ROUTE_NAMES.NOT_FOUND,
     meta: { public: true },
@@ -46,6 +51,15 @@ export const authGuard = to => {
 
   if (to.name === ROUTE_NAMES.LOGIN && userStore.isAuthenticated) {
     return { name: ROUTE_NAMES.DASHBOARD };
+  }
+
+  // Временный пароль: пользователь никуда не ходит, пока не сменит его
+  if (
+    userStore.isAuthenticated &&
+    userStore.mustChangePassword &&
+    to.name !== ROUTE_NAMES.CHANGE_PASSWORD
+  ) {
+    return { name: ROUTE_NAMES.CHANGE_PASSWORD };
   }
 
   return true;

@@ -3,15 +3,23 @@
     <h1 class="text-2xl font-semibold">Вход</h1>
 
     <div class="mt-6 flex flex-col gap-3">
-      <label class="flex flex-col gap-1 text-sm" for="email">
-        Email
-        <input id="email" v-model="email" class="rounded border p-2" type="email">
-      </label>
+      <div>
+        <label class="flex flex-col gap-1 text-sm" for="email">
+          Email
+          <input id="email" v-model="email" class="w-full rounded border p-2" type="email">
+        </label>
+        <p v-if="fieldErrors.email" class="mt-1 text-sm text-red-600">{{ fieldErrors.email }}</p>
+      </div>
 
-      <label class="flex flex-col gap-1 text-sm" for="password">
-        Пароль
-        <input id="password" v-model="password" class="rounded border p-2" type="password">
-      </label>
+      <div>
+        <label class="flex flex-col gap-1 text-sm" for="password">
+          Пароль
+          <input id="password" v-model="password" class="w-full rounded border p-2" type="password">
+        </label>
+        <p v-if="fieldErrors.password" class="mt-1 text-sm text-red-600">
+          {{ fieldErrors.password }}
+        </p>
+      </div>
 
       <p v-if="errorMessage" class="text-sm text-red-600">{{ errorMessage }}</p>
 
@@ -39,15 +47,19 @@ const userStore = useUserStore();
 const email = ref('');
 const password = ref('');
 const errorMessage = ref('');
+const fieldErrors = ref({});
 
 const handleSubmit = async () => {
   errorMessage.value = '';
+  fieldErrors.value = {};
+
   try {
     await userStore.login({ email: email.value, password: password.value });
     // redirect кладёт guard, когда отправляет неавторизованного юзера сюда
     await router.push(route.query.redirect || { name: ROUTE_NAMES.DASHBOARD });
   } catch (error) {
     errorMessage.value = error.parsed?.message || 'Не удалось войти';
+    fieldErrors.value = error.parsed?.fields || {};
   }
 };
 </script>

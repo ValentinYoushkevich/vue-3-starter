@@ -16,6 +16,7 @@
     "arrow-body-style": ["error", "as-needed"],
     "no-empty": ["error", { "allowEmptyCatch": false }],
     "no-param-reassign": "error",
+    "no-underscore-dangle": ["warn", { "allow": ["_retried"] }],
     "max-lines": ["error", { "max": 500, "skipBlankLines": true, "skipComments": true }],
     "no-restricted-imports": ["error", { "patterns": ["./*.vue", "../*.vue"] }],
 

@@ -4,7 +4,7 @@ import { useUserStore } from '@/store/user';
 
 // Эталон теста стора: axios мокается целиком, Pinia поднимается заново перед каждым тестом.
 vi.mock('@/plugins/axios', () => ({
-  default: { post: vi.fn() }
+  default: { post: vi.fn(), get: vi.fn() }
 }));
 
 const { default: axiosInstance } = await import('@/plugins/axios');
@@ -12,7 +12,6 @@ const { default: axiosInstance } = await import('@/plugins/axios');
 describe('store/user', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
-    localStorage.clear();
     vi.clearAllMocks();
   });
 
@@ -20,34 +19,77 @@ describe('store/user', () => {
     expect(useUserStore().isAuthenticated).toBe(false);
   });
 
-  it('login кладёт токены в стор и в localStorage', async () => {
-    axiosInstance.post.mockResolvedValue({
-      data: { accessToken: 'a-token', refreshToken: 'r-token' }
-    });
+  it('login кладёт accessToken в стор и подтягивает профиль', async () => {
+    axiosInstance.post.mockResolvedValue({ data: { accessToken: 'a-token' } });
+    axiosInstance.get.mockResolvedValue({ data: { id: '1', email: 'user@example.com' } });
 
     const store = useUserStore();
-    await store.login({ email: 'test@example.com', password: 'secret' });
+    await store.login({ email: 'user@example.com', password: 'secret' });
 
     expect(store.isAuthenticated).toBe(true);
-    expect(localStorage.getItem('accessToken')).toBe('a-token');
+    expect(store.currentUser?.email).toBe('user@example.com');
   });
 
-  it('logout чистит токены', async () => {
-    axiosInstance.post.mockResolvedValue({ data: { accessToken: 'a', refreshToken: 'r' } });
+  it('не сохраняет токен в localStorage', async () => {
+    axiosInstance.post.mockResolvedValue({ data: { accessToken: 'a-token' } });
+    axiosInstance.get.mockResolvedValue({ data: {} });
+
+    await useUserStore().login({});
+
+    expect(localStorage.getItem('accessToken')).toBeNull();
+    expect(Object.keys(localStorage)).toHaveLength(0);
+  });
+
+  it('initAuth восстанавливает сессию по refresh-куке', async () => {
+    axiosInstance.post.mockResolvedValue({ data: { accessToken: 'restored' } });
+    axiosInstance.get.mockResolvedValue({ data: { id: '1' } });
 
     const store = useUserStore();
-    await store.login({});
-    store.logout();
+    await store.initAuth();
 
-    expect(store.isAuthenticated).toBe(false);
-    expect(localStorage.getItem('accessToken')).toBeNull();
+    expect(store.isAuthenticated).toBe(true);
+    expect(store.authReady).toBe(true);
   });
 
-  it('сбрасывает loading, даже если запрос упал', async () => {
+  it('initAuth без валидной куки оставляет гостя, но помечает готовность', async () => {
+    axiosInstance.post.mockRejectedValue(new Error('401'));
+
+    const store = useUserStore();
+    await store.initAuth();
+
+    expect(store.isAuthenticated).toBe(false);
+    expect(store.authReady).toBe(true);
+  });
+
+  it('logout чистит сессию даже если запрос упал', async () => {
+    axiosInstance.post.mockResolvedValueOnce({ data: { accessToken: 'a-token' } });
+    axiosInstance.get.mockResolvedValue({ data: {} });
+    const store = useUserStore();
+    await store.login({});
+
+    axiosInstance.post.mockRejectedValueOnce(new Error('network'));
+    await store.logout();
+
+    expect(store.isAuthenticated).toBe(false);
+  });
+
+  it('сбрасывает loading, даже если логин упал', async () => {
     axiosInstance.post.mockRejectedValue(new Error('network'));
 
     const store = useUserStore();
     await expect(store.login({})).rejects.toThrow('network');
     expect(store.loading).toBe(false);
+  });
+
+  it('mustChangePassword прокидывается из ответа', async () => {
+    axiosInstance.post.mockResolvedValue({
+      data: { accessToken: 'a-token', mustChangePassword: true }
+    });
+    axiosInstance.get.mockResolvedValue({ data: {} });
+
+    const store = useUserStore();
+    await store.login({});
+
+    expect(store.mustChangePassword).toBe(true);
   });
 });
