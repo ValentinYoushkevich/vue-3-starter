@@ -1,0 +1,70 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "plugins": ["vue", "unicorn", "promise", "import"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "ignorePatterns": ["dist", "node_modules", "coverage"],
+  "rules": {
+    "eqeqeq": ["error", "always"],
+    "prefer-const": "error",
+    "no-unused-vars": ["error", { "varsIgnorePattern": "_" }],
+    "no-debugger": "warn",
+    "curly": ["error", "all"],
+    "arrow-body-style": ["error", "as-needed"],
+    "no-empty": ["error", { "allowEmptyCatch": false }],
+    "no-param-reassign": "error",
+    "max-lines": ["error", { "max": 500, "skipBlankLines": true, "skipComments": true }],
+    "no-restricted-imports": ["error", { "patterns": ["./*.vue", "../*.vue"] }],
+
+    "promise/always-return": "error",
+    "promise/prefer-await-to-then": "error",
+    "promise/no-return-wrap": "error",
+    "promise/no-nesting": "warn",
+    "promise/prefer-await-to-callbacks": "warn",
+    "promise/param-names": "warn",
+
+    "vue/no-arrow-functions-in-watch": "error",
+    "vue/no-deprecated-destroyed-lifecycle": "warn",
+    "vue/no-lifecycle-after-await": "warn",
+    "vue/no-export-in-script-setup": "warn",
+
+    "no-self-compare": "warn",
+    "no-constructor-return": "warn",
+    "no-promise-executor-return": "warn",
+    "no-throw-literal": "warn",
+    "no-useless-return": "warn",
+    "no-else-return": "warn",
+    "no-lonely-if": "warn",
+    "default-case-last": "warn",
+    "default-param-last": "warn",
+    "guard-for-in": "warn",
+
+    "unicorn/explicit-length-check": "warn",
+    "unicorn/prefer-query-selector": "warn",
+    "unicorn/prefer-string-replace-all": "warn",
+    "unicorn/no-instanceof-array": "warn",
+    "unicorn/prefer-array-some": "warn",
+    "unicorn/prefer-date-now": "warn",
+    "unicorn/catch-error-name": "warn",
+    "unicorn/no-negation-in-equality-check": "warn",
+
+    "unicorn/no-array-for-each": "off",
+    "unicorn/no-await-expression-member": "off",
+    "unicorn/no-object-as-default-parameter": "off",
+    "unicorn/switch-case-braces": "off",
+    "unicorn/no-array-reduce": "off",
+    "unicorn/prefer-module": "off",
+    "unicorn/filename-case": "off",
+    "unicorn/no-abusive-eslint-disable": "off",
+    "unicorn/prefer-regexp-test": "off",
+    "unicorn/no-useless-undefined": "off",
+    "unicorn/no-array-callback-reference": "off",
+    "unicorn/prefer-ternary": "off",
+
+    "import/no-unassigned-import": "off",
+    "import/no-named-as-default-member": "off"
+  }
+}
